@@ -221,6 +221,14 @@ if [ "$1" = "" ]; then
 	echo "请带上磁盘名称：如./$0 /dev/sda"
 	exit 0
 fi
+echo "脚本将自动分区并迁移数据"
+echo "1.磁盘已经分区则不会再分区"
+echo "2.分区大小一定要比/www目录所占空间大"
+echo "3.请事先备份数据,以免出现错误时数据丢失"
+echo "4.一切的一切与作者无关"
+read $hehe
+echo $hehe
+exit 0
 x=`fdisk -l $1 | wc -m`
 if [ "$x" = "0" ];then
 	echo "read error!"
