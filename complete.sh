@@ -229,54 +229,55 @@ echo "4.一切的一切与作者无关"
 echo "继续/放弃 (y/n)"
 read hehe
 if [ "$hehe" == "y" ];then 
-	echo "OK!"
-elif [ "$hehe" == "n" ];then
-	echo "no!"
-else 
-	echo "what?"
-fi
-exit 0
-x=`fdisk -l $1 | wc -m`
-if [ "$x" = "0" ];then
-	echo "read error!"
-	exit 0
-elif [ "$x" = "" ];then
-	echo "ERROR:没有这块磁盘，或者输入不正确。例:/dev/sda"
-	exit 0
-else 
-	echo "好的，脚本将继续运行"
-fi 
+	x=`fdisk -l $1 | wc -m`
+	if [ "$x" = "0" ];then
+		echo "read error!"
+		exit 0
+	elif [ "$x" = "" ];then
+		echo "ERROR:没有这块磁盘，或者输入不正确。例:/dev/sda"
+		exit 0
+	else 
+		echo "好的，脚本将继续运行"
+	fi 
 
-parted_state status_parted
+	parted_state status_parted
 
-fdisk_state status $1
-fdisk_pid=$?
-if [ "$fdisk_pid" = "0" ];then
-	fdisk_state start $1
-elif [ "$fdisk_pid" = "1" ];then
-	m=`fdisk -l /dev/sdc | grep "/dev/sdc:" | awk '{printf $3 $4}' | cut -f 1 -d ","` 
-	m_one=`fdisk -l /dev/sdc | grep "/dev/sdc:" | awk '{printf $3}' | cut -f 1 -d ","` 
-	x=`du -sh --block-size G /www | awk '{print $1}' | cut -f 1 -d "G"`
-	parted_state status $1
-	disk_sda_parted_two=`cat xp.txt | grep -w ' 1 ' | awk '{print $3}'`
-	rm -rf ./xp.txt
-	if [ "$m" = "$disk_sda_parted_two" ];then
-		if [ "$m_one" > "$x" ];then
-			echo "磁盘分区大小符合要求！"
+	fdisk_state status $1
+	fdisk_pid=$?
+	if [ "$fdisk_pid" = "0" ];then
+		fdisk_state start $1
+	elif [ "$fdisk_pid" = "1" ];then
+		m=`fdisk -l /dev/sdc | grep "/dev/sdc:" | awk '{printf $3 $4}' | cut -f 1 -d ","` 
+		m_one=`fdisk -l /dev/sdc | grep "/dev/sdc:" | awk '{printf $3}' | cut -f 1 -d ","` 
+		x=`du -sh --block-size G /www | awk '{print $1}' | cut -f 1 -d "G"`
+		parted_state status $1
+		disk_sda_parted_two=`cat xp.txt | grep -w ' 1 ' | awk '{print $3}'`
+		rm -rf ./xp.txt
+		if [ "$m" = "$disk_sda_parted_two" ];then
+			if [ "$m_one" > "$x" ];then
+				echo "磁盘分区大小符合要求！"
+			else 
+				echo "Error!"
+			fi
 		else 
-			echo "Error!"
+			if [ "$disk_sda_parted_two" > "$x" ];then
+				echo "磁盘分区大小符合要求！"
+			else 
+				echo "Error!"
+			fi
+			# echo "error!"
+			# echo $m
+			# echo $disk_sda_parted_two
 		fi
 	else 
-		if [ "$disk_sda_parted_two" > "$x" ];then
-			echo "磁盘分区大小符合要求！"
-		else 
-			echo "Error!"
-		fi
-		# echo "error!"
-		# echo $m
-		# echo $disk_sda_parted_two
+		echo "error!"
 	fi
+	exit 0
+elif [ "$hehe" == "n" ];then
+	echo "你已经放弃数据迁移的操作"
+	exit 0
 else 
-	echo "error!"
-fi
-exit 0 
+	echo "请输入正确的选项：继续/放弃(y/n)"
+	exit 0
+fi 
+exit 0
