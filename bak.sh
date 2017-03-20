@@ -69,28 +69,41 @@ q
 	esac
 	return $pid
 }
-parted_state status_parted
-service mysqld stop
-service httpd stop
-service nginxd stop
-service wdcp stop
-service memcached stop
-service pureftpd stop
-disk_sda_dfh=`mount | grep /www | awk '{print $1}' | cut -d "1" -f 1`
-ccp=$disk_sda_dfh"1"
-c=`umount /www`
-if [ "$c" = "" ];then
-	x=`mount | grep "/www" | awk '{print $1}' | cut -d "1" -f 1`
-	parted_state start $disk_sda_dfh
-	mount -t ext4 $ccp /www
+echo "您好！请备份您的数据"
+echo "继续/放弃(y/n)"
+read hehe
+if [ "$hehe" == "y" ];then 
+	echo "OK!"
+	exit 0
+	parted_state status_parted
+	service mysqld stop
+	service httpd stop
+	service nginxd stop
+	service wdcp stop
+	service memcached stop
+	service pureftpd stop
+	disk_sda_dfh=`mount | grep /www | awk '{print $1}' | cut -d "1" -f 1`
+	ccp=$disk_sda_dfh"1"
+	c=`umount /www`
+	if [ "$c" = "" ];then
+		x=`mount | grep "/www" | awk '{print $1}' | cut -d "1" -f 1`
+		parted_state start $disk_sda_dfh
+		mount -t ext4 $ccp /www
+	else 
+		echo "未成功运行！"
+	fi
+	service mysqld start
+	service httpd start
+	service nginxd start
+	service wdcp start
+	service memcached start
+	service pureftpd start
+	df -lh | grep /www
+elif [ "$hehe" == "n" ];then
+	echo "你已经放弃数据迁移的操作"
+	exit 0
 else 
-	echo "未成功运行！"
-fi
-service mysqld start
-service httpd start
-service nginxd start
-service wdcp start
-service memcached start
-service pureftpd start
-df -lh | grep /www
+	echo "请输入正确的选项：继续/放弃(y/n)"
+	exit 0
+fi 
 exit 0
