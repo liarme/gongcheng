@@ -70,7 +70,7 @@ q
 	return $pid
 }
 echo "您好！请备份您的数据"
-echo "继续/放弃(y/n)"
+echo -n -e "继续/放弃(y/n):"
 read hehe
 if [ "$hehe" == "y" ];then 
 	echo "OK!"
@@ -100,7 +100,7 @@ if [ "$hehe" == "y" ];then
 	service pureftpd start
 	df -lh | grep /www
 elif [ "$hehe" == "n" ];then
-	echo "你已经放弃数据迁移的操作"
+	echo "你已经放弃分区扩容的操作"
 	exit 0
 else 
 	echo "请输入正确的选项：继续/放弃(y/n)"
