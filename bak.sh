@@ -73,8 +73,6 @@ echo "您好！请备份您的数据"
 echo -n -e "继续/放弃(y/n):"
 read hehe
 if [ "$hehe" == "y" ];then 
-	echo "OK!"
-	exit 0
 	parted_state status_parted
 	service mysqld stop
 	service httpd stop
