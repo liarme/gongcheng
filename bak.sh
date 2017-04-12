@@ -8,13 +8,12 @@ status_parted(){
 		yum_install_parted=`yum list installed | grep "parted"`
 		if [ "$yum_install_parted" = "" ]; then 
 			echo "安装失败"
+			exit 0
 		else
 			echo "安装成功"
-			# disk_yun_parted $1
 		fi
 	else 
 		echo "已经安装，进行下一步!"
-		# disk_yun_parted $1
 	fi
 }
 status (){
@@ -78,6 +77,7 @@ if [ "$hehe" == "y" ];then
 	service httpd stop
 	service nginxd stop
 	service wdcp stop
+	service wdapache stop
 	service memcached stop
 	service pureftpd stop
 	disk_sda_dfh=`mount | grep /www | awk '{print $1}' | cut -d "1" -f 1`
@@ -94,14 +94,13 @@ if [ "$hehe" == "y" ];then
 	service httpd start
 	service nginxd start
 	service wdcp start
+	service wdapache start
 	service memcached start
 	service pureftpd start
 	df -lh | grep /www
 elif [ "$hehe" == "n" ];then
 	echo "你已经放弃分区扩容的操作"
-	exit 0
 else 
 	echo "请输入正确的选项：继续/放弃(y/n)"
-	exit 0
 fi 
 exit 0
