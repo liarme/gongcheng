@@ -73,6 +73,7 @@ echo -n -e "继续/放弃(y/n):"
 read hehe
 if [ "$hehe" == "y" ];then 
 	parted_state status_parted
+	# ↓ 停止wdcp的各种服务
 	service mysqld stop
 	service httpd stop
 	service nginxd stop
@@ -90,6 +91,7 @@ if [ "$hehe" == "y" ];then
 	else 
 		echo "未成功运行！"
 	fi
+	# 扩盘完成,启动服务
 	service mysqld start
 	service httpd start
 	service nginxd start
@@ -97,6 +99,7 @@ if [ "$hehe" == "y" ];then
 	service wdapache start
 	service memcached start
 	service pureftpd start
+	# ↓ 打印出扩盘后的分区信息
 	df -lh | grep /www
 elif [ "$hehe" == "n" ];then
 	echo "你已经放弃分区扩容的操作"
