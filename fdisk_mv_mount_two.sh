@@ -1,7 +1,7 @@
 #!/bin/bash
 #模式一：分区并WDCP数据迁移
 # ↓ 磁盘分区
-fdisk_state(){
+function fdisk_state(){
 	# ↓ 检测磁盘是否拥有分区
 	status (){
 		m=`fdisk -l $1 | grep "$1[1-9]"`
@@ -58,53 +58,55 @@ fi
 return $pid
 }
 # ↓ 针对centos7
-mv_www_centos7(){
-	systemctl stop httpd 
-	systemctl stop nginxd
-	systemctl stop wdcp
-	systemctl stop wdapache
-	systemctl stop mysqld
-	systemctl stop memcached
-	systemctl stop pureftpd
-	c=`ps -ef | grep /www | grep -v grep`
-	if [ "$c" == "" ];then
-		if [ ! -d "/xpxp" ]; then
-			mkdir /xpxp
-		fi
-		mount $1"1" /xpxp
-		mv /www/* /xpxp/
-		u=`umount /xpxp`
-		if [ "$u" == "" ];then
-			mount -t ext4 $1"1" /www
-		fi
-	else 
-		echo "未成功运行！"
-		umount /xpxp
-		rm -rf /xpxp
+function mv_stop(){
+	/www/wdlinux/init.d/mysqld stop
+	/www/wdlinux/init.d/httpd stop
+	/www/wdlinux/init.d/nginxd stop
+	/www/wdlinux/wdcp/wdcp.sh stop
+	/www/wdlinux/init.d/pureftpd stop
+	/www/wdlinux/init.d/memcached stop
+	phpfpm2=`ps -ef | grep /www/wdlinux/phps/52/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm2" != "" ];then
+		/www/wdlinux/phps/52/bin/php-fpm stop
+	fi 
+	phpfpm3=`ps -ef | grep /www/wdlinux/phps/53/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm3" != "" ];then
+		/www/wdlinux/phps/53/bin/php-fpm stop
+	fi 
+	phpfpm4=`ps -ef | grep /www/wdlinux/phps/54/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm4" != "" ];then
+		/www/wdlinux/phps/54/bin/php-fpm stop
+	fi 
+	phpfpm5=`ps -ef | grep /www/wdlinux/phps/55/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm5" != "" ];then
+		/www/wdlinux/phps/55/bin/php-fpm stop
+	fi 
+	phpfpm6=`ps -ef | grep /www/wdlinux/phps/56/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm6" != "" ];then
+		/www/wdlinux/phps/56/bin/php-fpm stop
+	fi 
+	phpfpm7=`ps -ef | grep /www/wdlinux/phps/70/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm7" != "" ];then
+		/www/wdlinux/phps/70/bin/php-fpm stop
+	fi 
+	phpfpm1=`ps -ef | grep /www/wdlinux/phps/71/etc/php-fpm.conf | grep -v grep`
+	if [ "$phpfpm1" != "" ];then
+		/www/wdlinux/phps/71/bin/php-fpm stop
 	fi
-	# 数据迁移完成,启动服务
-	systemctl start mysqld
-	systemctl start httpd
-	systemctl start nginxd
-	systemctl start wdcp
-	systemctl start wdapache
-	systemctl start memcached
-	systemctl start pureftpd
-	df -h | grep /www
-	echo $1"1               /www                    ext4    defaults        0 0">>/etc/fstab
-	cat /etc/fstab
 }
-# ↓ 针对centos6
-mv_www_centos6(){
-	service httpd stop
-	service nginxd stop
-	service wdcp stop
-	service wdapache stop
-	service mysqld stop
-	service memcached stop
-	service pureftpd stop
+function mv_start(){
+	/www/wdlinux/init.d/mysqld start
+	/www/wdlinux/init.d/httpd start
+	/www/wdlinux/init.d/nginxd start
+	/www/wdlinux/wdcp/wdcp.sh start
+	/www/wdlinux/init.d/pureftpd start
+	/www/wdlinux/init.d/memcached start
+	/www/wdlinux/wdcp/phps/start.sh
+}
+function mv_fdisk(){
 	c=`ps -ef | grep /www | grep -v grep`
 	if [ "$c" == "" ];then
+		fdisk_if $1
 		if [ ! -d "/xpxp" ]; then
 			mkdir /xpxp
 		fi
@@ -114,22 +116,34 @@ mv_www_centos6(){
 		if [ "$u" == "" ];then
 			mount -t ext4 $1"1" /www
 		fi
+		df -h | grep /www
+		fstab=`cat /etc/fstab | grep $1 | grep -v grep`
+		if [ "$fstab" == "" ];then
+			echo $1"1               /www                    ext4    defaults        0 0">>/etc/fstab
+		fi
+		cat /etc/fstab
 	else 
 		echo "未成功运行！"
 		umount /xpxp
 		rm -rf /xpxp
 	fi
-	# 数据迁移完成,启动服务
-	service mysqld start
-	service httpd start
-	service nginxd start
-	service wdcp start
-	service wdapache start
-	service memcached start
-	service pureftpd start
-	df -h | grep /www
-	echo $1"1               /www                    ext4    defaults        0 0">>/etc/fstab
-	cat /etc/fstab
+}
+function fdisk_if(){
+	# ↓ 交给fdisk_state函数检测磁盘是否有分区,有则返回 1 ,没有则返回 0 
+	fdisk_state status $1
+	# ↓ 接收 fdisk_state 函数的返回值
+	fdisk_pid=$?
+	if [ "$fdisk_pid" == "0" ];then
+		# ↓ 由fdisk_state 函数对磁盘进行分区
+		fdisk_state start $1
+	elif [ "$fdisk_pid" == "1" ];then
+		echo "脚本未作任何操作,因为磁盘已经拥有分区"
+		mv_start
+		exit 0
+	else 
+		echo "error!"
+		exit 0
+	fi
 }
 if [ "$1" = "" ]; then
 	echo "请带上磁盘名称：如./$0 /dev/sda"
@@ -152,6 +166,7 @@ echo "4.BUG可以来我的留言板留言"
 echo "继续/放弃 (y/n)"
 read hehe
 if [ "$hehe" == "y" ];then 
+	
 	disk=`fdisk -l $1 | wc -m`
 	if [ "$disk" == "0" ];then
 		echo "read error!"
@@ -160,31 +175,16 @@ if [ "$hehe" == "y" ];then
 		echo "ERROR:没有这块磁盘，或者输入不正确。例:/dev/sda"
 		exit 0
 	else 
+		tab=`df -h | grep /www`
+		if [ "$tab" != "" ];then
+			echo "/www已经挂在"$1"1"
+			exit 0
+		fi
 		echo "好的，脚本将继续运行"
 	fi 
-	# ↓ 交给fdisk_state函数检测磁盘是否有分区,有则返回 1 ,没有则返回 0 
-	fdisk_state status $1
-	# ↓ 接收 fdisk_state 函数的返回值
-	fdisk_pid=$?
-	if [ "$fdisk_pid" == "0" ];then
-		# ↓ 由fdisk_state 函数对磁盘进行分区
-		fdisk_state start $1
-		echo $x
-		if [ "$x" == "7" ];then
-			mv_www_centos7 $1
-		elif [ "$x" == "6" ];then
-			mv_www_centos6 $1
-		elif [ "$x" == "(Final)" ];then
-			mv_www_centos6 $1
-		else 
-			echo "error!"
-		fi
-	elif [ "$fdisk_pid" == "1" ];then
-		echo "脚本未作任何操作,因为磁盘已经拥有分区"
-	else 
-		echo "error!"
-	fi
-	exit 0
+	mv_stop
+	mv_fdisk $1
+	mv_start
 elif [ "$hehe" == "n" ];then
 	echo "你已经放弃数据迁移的操作"
 	exit 0
